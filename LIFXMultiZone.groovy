@@ -10,20 +10,28 @@
 metadata {
     definition(name: 'LIFX Multizone', namespace: 'robheyes', author: 'Robert Alan Heyes', importUrl: 'https://raw.githubusercontent.com/robheyes/lifxcode/master/LIFXMultiZone.groovy') {
         capability 'Light'
-        capability 'ColorControl'
-        capability 'ColorTemperature'
-        capability 'Polling'
-        capability 'Initialize'
-        capability 'Switch'
+        capability "ColorTemperature"
+        capability "Polling"
+        capability "Switch"
+        capability "Switch Level"
+        capability "Initialize"
+        capability "ColorControl"
+        capability "ColorMode"
 
         attribute "label", "string"
         attribute "group", "string"
         attribute "location", "string"
+        attribute "lightStatus", "string"
+        attribute "wifiStatus", "map"
+
+        command "setState", ["MAP"]
     }
 
 
     preferences {
-        input 'logEnable', 'bool', title: 'Enable debug logging', required: false
+        input "useActivityLogFlag", "bool", title: "Enable activity logging", required: false
+        input "useDebugActivityLogFlag", "bool", title: "Enable debug logging", required: false
+        input "defaultTransition", "decimal", title: "Color map level transition time", description: "Set color time (seconds)", required: true, defaultValue: 0.0
     }
 }
 
@@ -71,22 +79,32 @@ def off() {
 
 @SuppressWarnings("unused")
 def setColor(Map colorMap) {
-
+    sendActions parent.deviceSetColor(device, colorMap, getUseActivityLogDebug(), state.transitionTime ?: 0)
 }
 
 @SuppressWarnings("unused")
 def setHue(number) {
-
+    sendActions parent.deviceSetHue(device, hue, getUseActivityLog(), state.transitionTime ?: 0)
 }
 
 @SuppressWarnings("unused")
 def setSaturation(number) {
-
+    sendActions parent.deviceSetSaturation(device, saturation, getUseActivityLog(), state.transitionTime ?: 0)
 }
 
 @SuppressWarnings("unused")
 def setColorTemperature(temperature) {
+    sendActions parent.deviceSetColorTemperature(device, temperature, getUseActivityLog(), state.transitionTime ?: 0)
+}
 
+@SuppressWarnings("unused")
+def setLevel(level, duration = 0) {
+    sendActions parent.deviceSetLevel(device, level as Number, getUseActivityLog(), duration)
+}
+
+@SuppressWarnings("unused")
+def setState(value) {
+    sendActions parent.deviceSetState(device, stringToMap(value), getUseActivityLog(), state.transitionTime ?: 0)
 }
 
 private void sendActions(Map<String, List> actions) {
